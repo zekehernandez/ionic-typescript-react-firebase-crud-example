@@ -1,0 +1,7 @@
+{
+  "name": "ionic-typescript-react-firebase-crud-example",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react"
+}
