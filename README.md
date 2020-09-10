@@ -5,8 +5,9 @@ An example CRUD app that uses Ionic Framework, React, Firebase (Auth and Firesto
 
 ### Clone repository
 
-
 ### Firebase
-
+#### Set up Web App
+#### Set up Authentication
+#### Set up Cloud Firestore
 
 ### Replace stuff
