@@ -4,66 +4,69 @@ import firebase from 'firebase';
 import { db } from '..';
 import { COLLECTIONS } from '../firebase.constants';
 
+export type ItemStatus = 'draft' | 'published' | 'archived'
+
 export const DEFAULT_ITEMS = [
-  'Burpees',
-  'Push-ups',
-  'Skaters',
-  'Plank',
-  'Mountain Climbers',
-  'Squats',
-  'Lunges'
+  { name: 'Cheddar', status: 'draft' },
+  { name: 'Brie', status: 'published' },
+  { name: 'Swiss', status: 'published' },
+  { name: 'Bleu', status: 'archived' },
+  { name: 'Mozzarella', status: 'archived' },
 ]
 
 export interface IItem {
   id?: string,
-  label: string,
-  created: Date
+  name: string,
+  created: Date,
+  status: ItemStatus
 }
 
-export const ItemMethods = {
+export const itemMethods = {
   getItems: async (): Promise<IItem[]> => {
     const user = firebase.auth().currentUser
 
     if (user) {
       try {
-        let ItemsRef = db.collection(COLLECTIONS.USERS).doc(user.uid).collection(COLLECTIONS.ItemS)
-        let activeRef = await ItemsRef.get();
+        let itemsRef = db.collection(COLLECTIONS.USERS).doc(user.uid).collection(COLLECTIONS.ITEMS)
+        let activeRef = await itemsRef.get();
   
-        const Items: IItem[] = []
-        for (let Item of activeRef.docs) {
-          let data = Item.data()
+        const items: IItem[] = []
+        for (let item of activeRef.docs) {
+          let data = item.data()
 
           const newItem = {
-            id: Item.id,
-            label: String(data.label),
-            created: data.created
+            id: item.id,
+            name: String(data.name),
+            created: data.created,
+            status: data.status
           }
   
-          Items.push(newItem)
+          items.push(newItem)
         }
 
-        return Items
+        return items
       } catch (err) {
-        console.log('error getting Items');
+        console.log('error getting items');
         return []
       }
     } else {
       return []
     }
   },
-  addItem: async (label: string, handleAddItem: (label: string, id: string) => void): Promise<void> => {
+  addItem: async (name: string, status: ItemStatus, handleAddItem: (name: string, id: string) => void): Promise<void> => {
     const user = firebase.auth().currentUser
 
     if (user) {
       try {
-        let ItemRef = db.collection(COLLECTIONS.USERS).doc(user.uid).collection(COLLECTIONS.ItemS).doc()
+        let itemRef = db.collection(COLLECTIONS.USERS).doc(user.uid).collection(COLLECTIONS.ITEMS).doc()
 
-        await ItemRef.set({
-          label,
-          created: firebase.firestore.Timestamp.fromDate(new Date())
+        await itemRef.set({
+          name,
+          created: firebase.firestore.Timestamp.fromDate(new Date()),
+          status
         });
 
-        handleAddItem(label, ItemRef.id)
+        handleAddItem(name, itemRef.id)
 
         return
       } catch (err) {
@@ -73,18 +76,19 @@ export const ItemMethods = {
       return
     }
   },
-  editItem: async (newLabel: string, id: string): Promise<void> => {
+  editItem: async (newName: string, newStatus: ItemStatus, id: string): Promise<void> => {
     const user = firebase.auth().currentUser;
 
     if (user) {
       try {
-        const ItemRef = db.collection(COLLECTIONS.USERS).doc(user.uid).collection(COLLECTIONS.ItemS).doc(id)
+        const ItemRef = db.collection(COLLECTIONS.USERS).doc(user.uid).collection(COLLECTIONS.ITEMS).doc(id)
 
         ItemRef.set({
-          label: newLabel
+          name: newName,
+          status: newStatus
         }, { merge: true });
       } catch (err) {
-        console.log('error editing Item');
+        console.log('error editing item');
       }
     } else {
       return
@@ -95,9 +99,9 @@ export const ItemMethods = {
 
     if (user) {
       try {
-      db.collection(COLLECTIONS.USERS).doc(user.uid).collection(COLLECTIONS.ItemS).doc(id).delete()
+      db.collection(COLLECTIONS.USERS).doc(user.uid).collection(COLLECTIONS.ITEMS).doc(id).delete()
       } catch (err) {
-        console.log('error saving Item');
+        console.log('error deleting item');
       }
     } else {
       return

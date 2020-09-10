@@ -19,7 +19,7 @@ const Header: React.FC<HeaderProps> = ({ pageName }: HeaderProps) => {
       <IonToolbar>
         <IonTitle>{pageName}</IonTitle>
         <IonButtons slot="end">
-          <IonButton fill="solid" color="danger" onClick={handleSignoutClick}>
+          <IonButton size="small" color="danger" onClick={handleSignoutClick}>
             Sign Out
             <IonIcon slot="end" icon={exitOutline} />
           </IonButton>

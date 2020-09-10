@@ -22,6 +22,7 @@ export const authMethods = {
 
       // grab token from local storage and set to state. 
       setUser(res.user)
+      setErrors([])
 
       // Once the user creation has happened successfully, we can add the currentUser into firestore
       // with the appropriate details.
@@ -33,17 +34,18 @@ export const authMethods = {
       const batch = db.batch()
 
       let i = 0;
-      for (let Item of DEFAULT_ITEMS) {
-        let ItemRef = 
+      for (let item of DEFAULT_ITEMS) {
+        let itemRef = 
           db.collection(COLLECTIONS.USERS).doc(firebase.auth().currentUser.uid)
-            .collection(COLLECTIONS.ItemS).doc();
+            .collection(COLLECTIONS.ITEMS).doc();
 
         let createdDate = new Date();
         createdDate.setMilliseconds(i);
 
-        batch.set(ItemRef, {
-          label: Item,
-          created: firebase.firestore.Timestamp.fromDate(createdDate)
+        batch.set(itemRef, {
+          name: item.name,
+          created: firebase.firestore.Timestamp.fromDate(createdDate),
+          status: item.status
         });   
 
         i++;
@@ -62,6 +64,7 @@ export const authMethods = {
       // set token to localStorage 
       await localStorage.setItem(LOCAL_STORAGE.TOKEN, token)
       setUser(res.user)
+      setErrors([])
     } catch (err) {
       setErrors(prev => ([...prev, err.message]))
     }
@@ -73,6 +76,7 @@ export const authMethods = {
       await localStorage.removeItem(LOCAL_STORAGE.TOKEN)
       // set the token back to original state
       setUser(null)
+      setErrors([])
     } catch (err) {
       // there shouldn't every be an error from firebase but just in case
       setErrors(prev => ([...prev, err.message]))

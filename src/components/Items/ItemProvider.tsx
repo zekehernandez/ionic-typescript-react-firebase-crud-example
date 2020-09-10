@@ -1,8 +1,8 @@
 import React, { useState, useContext, useEffect } from 'react';
 
-import { ItemMethods, IItem } from './firebase/data/items';
+import { itemMethods, IItem, ItemStatus } from '../../firebase/data/items';
 
-import { IMessage } from './components/common/Message';
+import { IMessage } from '../common/Message';
 
 interface IInputs {
   email: string,
@@ -18,16 +18,16 @@ interface IUser {
 }
 
 export interface IItemContext {
-  Items: IItem[],
-  addItem: (label: string) => void,
-  editItem: (newLabel: string, id: string) => void,
+  items: IItem[],
+  addItem: (name: string, status: ItemStatus) => void,
+  editItem: (newName: string, newStatus: ItemStatus, id: string) => void,
   deleteItem: (id: string) => void,
   message: IMessage | null,
   closeMessage: () => void
 }
 
 const initialState = {
-  Items: [],
+  items: [],
   addItem: () => {},
   editItem: () => {},
   deleteItem:  () => {},
@@ -42,11 +42,11 @@ interface ItemProviderProps {
 }
 
 const ItemProvider: React.FC<ItemProviderProps> = props => {
-  const [Items, setItems] = useState<IItem[]>([])
+  const [items, setItems] = useState<IItem[]>([])
   const [message, setMessage] = useState<IMessage | null>(initialState.message)
 
   const fetchItems = async () => {
-    const data = await ItemMethods.getItems();
+    const data = await itemMethods.getItems();
     setItems(data);
   }
 
@@ -55,57 +55,58 @@ const ItemProvider: React.FC<ItemProviderProps> = props => {
   }, [])
 
   useEffect(() => {
-    const handleAddItem = (label: string, id: string) => {
-      const newItems = Items.map(Item => {
-        if (Item.label === label) {
+    const handleAddItem = (name: string, id: string) => {
+      const newItems = items.map(item => {
+        if (item.name === name) {
           return {
-            ...Item,
+            ...item,
             id
           }
         } else {
-          return Item
+          return item
         }
       })
   
       setItems(newItems)
     }
 
-    for (let Item of Items) {
-      if (!Item.id) {
-        ItemMethods.addItem(Item.label, handleAddItem)
+    for (let item of items) {
+      if (!item.id) {
+        itemMethods.addItem(item.name, item.status, handleAddItem)
       }
     }
-  }, [Items]);
+  }, [items]);
 
 
-  const addItem = (label: string) => {
-    if (Items.some(Item => Item.label === label)) {
+  const addItem = (name: string, status: ItemStatus) => {
+    if (items.some(item => item.name === name)) {
       setMessage({
-        text: `Whoops, you already have an Item called ${label}.`,
+        text: `Whoops, you already have an item called ${name}.`,
         type: 'info'
       })
     } else {
-      setItems([{ label, created: new Date() }, ...Items])
+      setItems([{ name, created: new Date(), status }, ...items])
     }
   }
 
-  const editItem = (newLabel: string, id: string) => {
-    if (Items.some(Item => Item.label === newLabel)) {
+  const editItem = (newName: string, newStatus: ItemStatus, id: string) => {
+    if (items.some(item => item.name === newName)) {
       setMessage({
-        text: `Whoops, you already have an Item called ${newLabel}.`,
+        text: `Whoops, you already have an item called ${newName}.`,
         type: 'info'
       })
     } else {
-      ItemMethods.editItem(newLabel, id);
+      itemMethods.editItem(newName, newStatus, id);
 
-      const newItems = Items.map(Item => {
-        if (Item.id === id) {
+      const newItems = items.map(item => {
+        if (item.id === id) {
           return {
-            ...Item,
-            label: newLabel
+            ...item,
+            name: newName,
+            status: newStatus
           }
         } else {
-          return Item
+          return item
         }
       })
 
@@ -114,9 +115,9 @@ const ItemProvider: React.FC<ItemProviderProps> = props => {
   }
 
   const deleteItem = (id: string) => {
-    ItemMethods.deleteItem(id);
+    itemMethods.deleteItem(id);
     
-    const newItems = [...Items];
+    const newItems = [...items];
     newItems.splice(newItems.findIndex(i => i.id === id), 1);
 
     setItems(newItems);
@@ -130,7 +131,7 @@ const ItemProvider: React.FC<ItemProviderProps> = props => {
   return (
     <ItemContext.Provider
       value={{
-        Items,
+        items,
         addItem,
         editItem,
         deleteItem,

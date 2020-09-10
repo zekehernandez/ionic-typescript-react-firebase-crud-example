@@ -2,7 +2,7 @@
 import React, {useContext, FormEvent} from 'react';
 import { useHistory } from 'react-router-dom';
 
-import { IonItem, IonInput, IonLabel, IonCard, IonButton, IonFooter, IonRouterLink } from '@ionic/react';
+import { IonItem, IonInput, IonLabel, IonCard, IonButton, IonRouterLink } from '@ionic/react';
 
 import './Auth.css';
 import { firebaseAuth } from './AuthProvider';
